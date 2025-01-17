@@ -11,7 +11,7 @@ const app = express();
 app.use(bodyParser.json());
 
 // Environment variables
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 const token = process.env.TELEGRAM_BOT_TOKEN || '6243200710:AAGt5dLvjobPFCgj2K9hRQi0g8gote3gRQ0';
 const timeZone = 'Africa/Algiers';
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -59,10 +59,6 @@ app.get('/health', (req, res) => {
 });
 
 // Webhook route for production
-app.post(`/webhook/${token}`, (req, res) => {
-    bot.handleUpdate(req.body, res);
-    res.sendStatus(200);
-});
 
 // Helper functions
 function loadUsers(): { [key: number]: UserData } {
