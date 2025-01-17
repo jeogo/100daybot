@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "axios": "^1.7.9",
+    "express": "^4.21.2",
     "moment-timezone": "^0.5.46",
     "node-schedule": "^2.1.1",
     "node-telegram-bot-api": "^0.66.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",
+    "@types/express": "^5.0.0",
     "@types/moment": "^2.13.0",
     "@types/node": "^22.10.7",
     "@types/node-schedule": "^2.1.7",
