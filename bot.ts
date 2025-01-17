@@ -4,18 +4,17 @@ import * as schedule from 'node-schedule';
 import moment = require('moment-timezone');
 import * as fs from 'fs';
 import * as path from 'path';
-import bodyParser from 'body-parser';
 
 // Express setup
 const app = express();
-app.use(bodyParser.json());
+const port = process.env.PORT || 3000;
 
-// Environment variables
-const port = Number(process.env.PORT) || 3000;
+// Bot configuration
 const token = process.env.TELEGRAM_BOT_TOKEN || '6243200710:AAGt5dLvjobPFCgj2K9hRQi0g8gote3gRQ0';
 const timeZone = 'Africa/Algiers';
-const isDevelopment = process.env.NODE_ENV === 'development';
-const url = process.env.APP_URL || 'https://your-app.onrender.com';
+
+// Initialize bot with polling
+const bot = new TelegramBot(token, { polling: true });
 
 // Interface for user data
 interface UserData {
@@ -30,35 +29,6 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR);
 }
-
-// Bot initialization based on environment
-let bot: TelegramBot;
-
-if (isDevelopment) {
-    // Use polling for development
-    bot = new TelegramBot(token, { polling: true });
-    console.log('Bot started in development mode (polling)');
-} else {
-    // Use webhooks for production
-    bot = new TelegramBot(token, { webHook: { port } });
-    bot.setWebHook(`${url}/webhook/${token}`);
-    console.log('Bot started in production mode (webhook)');
-}
-
-// Express routes
-app.get('/', (req, res) => {
-    res.send('100 Days Challenge Bot is running!');
-});
-
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'healthy',
-        mode: isDevelopment ? 'development' : 'production',
-        timestamp: new Date().toISOString()
-    });
-});
-
-// Webhook route for production
 
 // Helper functions
 function loadUsers(): { [key: number]: UserData } {
@@ -94,9 +64,6 @@ async function sendDailyReport(chatId: number) {
             `);
         } else {
             await bot.sendMessage(chatId, "🎉 مبروك! لقد أكملت تحدي 100 يوم!");
-            // Optionally remove user from tracking after completion
-            delete users[chatId];
-            saveUsers(users);
         }
     }
 }
@@ -130,18 +97,18 @@ schedule.scheduleJob('0 22 * * *', { tz: timeZone }, async () => {
     }
 });
 
+// Simple Express routes
+app.get('/', (req, res) => {
+    res.send('Bot is running!');
+});
+
+// Start Express server after bot initialization
+app.listen(port, () => {
+    console.log(`Express server is running on port ${port}`);
+    console.log('Telegram bot is active');
+});
+
 // Error handling
 bot.on('error', (error) => {
     console.error('Bot error:', error);
-});
-
-bot.on('webhook_error', (error) => {
-    console.error('Webhook error:', error);
-});
-
-// Start server
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-    console.log(`Environment: ${isDevelopment ? 'Development' : 'Production'}`);
-    console.log(`Timezone: ${timeZone}`);
 });
